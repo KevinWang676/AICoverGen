@@ -314,7 +314,7 @@ def song_cover_pipeline(song_input, voice_model, pitch_change, keep_files,
             mdx_model_params = json.load(infile)
 
         # if youtube url
-        if urlparse(song_input).scheme == 'https':
+        if not "\" in song_input:
             input_type = 'yt'
             song_id = "talktalkai" #get_youtube_video_id(song_input)
             if song_id is None:
