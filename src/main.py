@@ -21,6 +21,32 @@ from pydub import AudioSegment
 from mdx import run_mdx
 from rvc import Config, load_hubert, get_vc, rvc_infer
 
+import re
+import requests
+from pathlib import Path
+from scipy.io.wavfile import write
+from scipy.io import wavfile
+
+headers = {
+    "user-agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/88.0.4302.0 Safari/537.36"
+}
+pattern = r'//www\.bilibili\.com/video[^"]*'
+
+def find_first_appearance_with_neighborhood(text, pattern):
+    match = re.search(pattern, text)
+
+    if match:
+        return match.group()
+    else:
+        return None
+
+def search_bilibili(keyword):
+    req = requests.get("https://search.bilibili.com/all?keyword={}&duration=1&tids=3&page=1".format(keyword), headers=headers).text
+
+    video_link = "https:" + find_first_appearance_with_neighborhood(req, pattern)
+
+    return video_link
+
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
 mdxnet_models_dir = os.path.join(BASE_DIR, 'mdxnet_models')
@@ -60,22 +86,62 @@ def get_youtube_video_id(url, ignore_playlist=True):
     return None
 
 
-def yt_download(link):
-    ydl_opts = {
-        'format': 'bestaudio',
-        'outtmpl': '%(title)s',
-        'nocheckcertificate': True,
-        'ignoreerrors': True,
-        'no_warnings': True,
-        'quiet': True,
-        'extractaudio': True,
-        'postprocessors': [{'key': 'FFmpegExtractAudio', 'preferredcodec': 'mp3'}],
-    }
-    with yt_dlp.YoutubeDL(ydl_opts) as ydl:
-        result = ydl.extract_info(link, download=True)
-        download_path = ydl.prepare_filename(result, outtmpl='%(title)s.mp3')
+def yt_download(
+    song_name,
+    start_time=0,
+    end_time=15,
+    is_full_song=True,
+    output_filename="talktalkai_song.wav",
+    num_attempts=5,
+    url_base="",
+    quiet=False,
+    force=True,
+):
+    video_identifier = search_bilibili(song_name)
+    if is_full_song:
+        ydl_opts = {
+            'noplaylist': True,
+            'format': 'bestaudio/best',
+            'postprocessors': [{
+                'key': 'FFmpegExtractAudio',
+                'preferredcodec': 'wav',
+            }],
+            "outtmpl": song_name.strip(),
+        }
+        with yt_dlp.YoutubeDL(ydl_opts) as ydl:
+            ydl.download([video_identifier])
+        audio_path = song_name.strip() + ".wav"
+        return audio_path
 
-    return download_path
+    else:
+        output_filename = song_name.strip()
+        output_path = Path(output_filename)
+        if output_path.exists():
+            if not force:
+                return output_path
+            else:
+                output_path.unlink()
+
+        quiet = "--quiet --no-warnings" if quiet else ""
+        command = f"""
+            yt-dlp {quiet} -x --audio-format wav -f bestaudio -o "{output_filename}" --download-sections "*{start_time}-{end_time}" "{url_base}{video_identifier}"  # noqa: E501
+        """.strip()
+
+        attempts = 0
+        while True:
+            try:
+                _ = subprocess.check_output(command, shell=True, stderr=subprocess.STDOUT)
+            except subprocess.CalledProcessError:
+                attempts += 1
+                if attempts == num_attempts:
+                    return None
+            else:
+                break
+
+        if output_path.exists():
+            return output_path
+        else:
+            return None
 
 
 def raise_exception(error_msg, is_webui):
