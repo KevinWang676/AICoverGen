@@ -290,7 +290,7 @@ def song_cover_pipeline(song_input, voice_model, pitch_change, keep_files,
         # if youtube url
         if not ":" in song_input:
             input_type = 'yt'
-            song_id = "talktalkai" #get_youtube_video_id(song_input)
+            song_id = get_youtube_video_id(search_bilibili(song_input))
             if song_id is None:
                 error_msg = 'Invalid YouTube url.'
                 raise_exception(error_msg, is_webui)
