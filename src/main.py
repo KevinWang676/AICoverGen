@@ -233,8 +233,7 @@ def preprocess_song(song_input, mdx_model_params, song_id="talktalkai", is_webui
     keep_orig = False
     if input_type == 'yt':
         display_progress('[~] Downloading song...', 0, is_webui, progress)
-        song_link = song_input.split('&')[0]
-        orig_song_path = yt_download(song_link)
+        orig_song_path = yt_download(song_input.strip())
     elif input_type == 'local':
         orig_song_path = song_input
         keep_orig = True
