@@ -5,11 +5,11 @@ import queue
 import threading
 import warnings
 
+import torch
 import librosa
 import numpy as np
 import onnxruntime as ort
 import soundfile as sf
-import torch
 from tqdm import tqdm
 
 warnings.filterwarnings("ignore")
