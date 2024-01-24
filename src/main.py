@@ -163,7 +163,7 @@ def display_progress(message, percent, is_webui, progress=None):
         print(message)
 
 
-def preprocess_song(song_input, mdx_model_params, song_id, is_webui, input_type, progress=None):
+def preprocess_song(song_input, mdx_model_params, is_webui, input_type, progress=None):
     keep_orig = False
     if input_type == 'yt':
         display_progress('[~] Downloading song...', 0, is_webui, progress)
@@ -175,7 +175,7 @@ def preprocess_song(song_input, mdx_model_params, song_id, is_webui, input_type,
     else:
         orig_song_path = None
 
-    song_output_dir = os.path.join(output_dir, song_id)
+    song_output_dir = os.path.join(output_dir)
     orig_song_path = convert_to_stereo(orig_song_path)
 
     display_progress('[~] Separating Vocals from Instrumental...', 0.1, is_webui, progress)
