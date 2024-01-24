@@ -229,7 +229,8 @@ def display_progress(message, percent, is_webui, progress=None):
         print(message)
 
 
-def preprocess_song(song_input, mdx_model_params, song_id="talktalkai", is_webui, input_type, progress=None):
+def preprocess_song(song_input, mdx_model_params, song_id, is_webui, input_type, progress=None):
+    song_id="talktalkai"
     keep_orig = False
     if input_type == 'yt':
         display_progress('[~] Downloading song...', 0, is_webui, progress)
