@@ -41,7 +41,7 @@ def find_first_appearance_with_neighborhood(text, pattern):
         return None
 
 def search_bilibili(keyword):
-    req = requests.get("https://search.bilibili.com/all?keyword={}&duration=1&tids=3&page=1".format(keyword), headers=headers).text
+    req = requests.get("https://search.bilibili.com/all?keyword={}&duration=1&tids=193&page=1".format(keyword), headers=headers).text
 
     video_link = "https:" + find_first_appearance_with_neighborhood(req, pattern)
 
